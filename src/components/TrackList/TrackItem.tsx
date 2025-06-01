@@ -26,6 +26,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
     currentTrack,
     isPlaying,
     likedTracks,
+    queue,
     setCurrentTrack,
     setIsPlaying,
     setQueue,
@@ -40,7 +41,10 @@ const TrackItem: React.FC<TrackItemProps> = ({
       setIsPlaying(!isPlaying);
     } else {
       setCurrentTrack(track);
-      setQueue([track]); // Set single track queue for now
+      // If the track is not in the current queue, create a new queue with this track
+      if (!queue.find(t => t.id === track.id)) {
+        setQueue([track]);
+      }
       setIsPlaying(true);
     }
   };

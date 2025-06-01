@@ -2,10 +2,13 @@
 import React from 'react';
 import { Heart, Play, Shuffle } from 'lucide-react';
 import { useMusicStore } from '../store/musicStore';
+import { useLanguageStore } from '../store/languageStore';
 import TrackItem from '../components/TrackList/TrackItem';
+import LanguageSwitcher from '../components/Layout/LanguageSwitcher';
 
 const LikedSongs = () => {
   const { likedTracks, setQueue, setCurrentTrack, setIsPlaying, setShuffle } = useMusicStore();
+  const { t } = useLanguageStore();
 
   const playAllLiked = () => {
     if (likedTracks.length > 0) {
@@ -29,6 +32,11 @@ const LikedSongs = () => {
     <div className="min-h-screen bg-gradient-to-b from-purple-900 via-purple-800 to-black">
       {/* Header */}
       <div className="relative p-6 pb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div></div>
+          <LanguageSwitcher />
+        </div>
+        
         <div className="flex items-end space-x-6">
           <div className="w-60 h-60 bg-gradient-to-br from-purple-400 to-blue-600 rounded-lg flex items-center justify-center shadow-2xl">
             <Heart className="w-24 h-24 text-white fill-current" />
@@ -36,9 +44,9 @@ const LikedSongs = () => {
           
           <div className="flex-1 min-w-0">
             <p className="text-white text-sm font-medium mb-2">PLAYLIST</p>
-            <h1 className="text-5xl font-bold text-white mb-4">Liked Songs</h1>
+            <h1 className="text-5xl font-bold text-white mb-4">{t('liked')}</h1>
             <p className="text-gray-300 text-lg">
-              {likedTracks.length} {likedTracks.length === 1 ? 'song' : 'songs'}
+              {likedTracks.length} {likedTracks.length === 1 ? t('song') : t('songs')}
             </p>
           </div>
         </div>
@@ -92,15 +100,15 @@ const LikedSongs = () => {
         ) : (
           <div className="text-center py-20">
             <Heart className="w-20 h-20 text-gray-600 mx-auto mb-6" />
-            <h3 className="text-2xl font-bold text-white mb-4">Songs you like will appear here</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">{t('songsYouLike')}</h3>
             <p className="text-gray-400 text-lg mb-8">
-              Save songs by tapping the heart icon.
+              {t('saveByHeart')}
             </p>
             <button
               onClick={() => window.history.back()}
               className="bg-white text-black font-medium px-8 py-3 rounded-full hover:scale-105 transition-transform"
             >
-              Find something to like
+              {t('findSomething')}
             </button>
           </div>
         )}

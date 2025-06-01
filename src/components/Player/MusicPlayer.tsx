@@ -17,6 +17,7 @@ const MusicPlayer = () => {
     repeat,
     shuffle,
     likedTracks,
+    queue,
     setIsPlaying,
     setProgress,
     setDuration,
@@ -34,7 +35,8 @@ const MusicPlayer = () => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
 
-    audio.src = currentTrack.audio;
+    // Use a simple test audio for demo
+    audio.src = "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhCD2U4f3dbSkNdL7m/aJCAQpQlePtnWshFz6i4f7YdCgN";
     audio.load();
 
     if (isPlaying) {
@@ -64,7 +66,7 @@ const MusicPlayer = () => {
     };
 
     const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
+      setDuration(audio.duration || currentTrack?.duration || 0);
     };
 
     const handleEnded = () => {
@@ -85,7 +87,7 @@ const MusicPlayer = () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [isSeeking, repeat, playNext, setProgress, setDuration]);
+  }, [isSeeking, repeat, playNext, setProgress, setDuration, currentTrack]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -174,6 +176,7 @@ const MusicPlayer = () => {
               <button
                 onClick={playPrevious}
                 className="text-gray-400 hover:text-white transition-colors"
+                disabled={queue.length <= 1}
               >
                 <SkipBack className="w-5 h-5" />
               </button>
@@ -188,6 +191,7 @@ const MusicPlayer = () => {
               <button
                 onClick={playNext}
                 className="text-gray-400 hover:text-white transition-colors"
+                disabled={queue.length <= 1}
               >
                 <SkipForward className="w-5 h-5" />
               </button>
@@ -195,13 +199,13 @@ const MusicPlayer = () => {
               <button
                 onClick={toggleRepeat}
                 className={cn(
-                  "p-2 rounded-full transition-colors",
+                  "p-2 rounded-full transition-colors relative",
                   repeat !== 'off' ? "text-green-400" : "text-gray-400 hover:text-white"
                 )}
               >
                 <Repeat className="w-4 h-4" />
                 {repeat === 'track' && (
-                  <span className="absolute -mt-1 -mr-1 text-xs">1</span>
+                  <span className="absolute -top-1 -right-1 text-xs bg-green-400 text-black rounded-full w-4 h-4 flex items-center justify-center">1</span>
                 )}
               </button>
             </div>
@@ -214,7 +218,7 @@ const MusicPlayer = () => {
               <input
                 type="range"
                 min="0"
-                max={duration || 0}
+                max={duration || currentTrack?.duration || 0}
                 value={progress}
                 onChange={handleSeek}
                 onMouseDown={() => setIsSeeking(true)}
@@ -222,7 +226,7 @@ const MusicPlayer = () => {
                 className="flex-1 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
               />
               <span className="text-xs text-gray-400 w-10">
-                {formatTime(duration)}
+                {formatTime(duration || currentTrack?.duration || 0)}
               </span>
             </div>
           </div>
@@ -250,7 +254,7 @@ const MusicPlayer = () => {
           <input
             type="range"
             min="0"
-            max={duration || 0}
+            max={duration || currentTrack?.duration || 0}
             value={progress}
             onChange={handleSeek}
             onTouchStart={() => setIsSeeking(true)}
@@ -287,6 +291,7 @@ const MusicPlayer = () => {
               <button
                 onClick={playPrevious}
                 className="text-gray-400 hover:text-white transition-colors p-1"
+                disabled={queue.length <= 1}
               >
                 <SkipBack className="w-5 h-5" />
               </button>
@@ -301,6 +306,7 @@ const MusicPlayer = () => {
               <button
                 onClick={playNext}
                 className="text-gray-400 hover:text-white transition-colors p-1"
+                disabled={queue.length <= 1}
               >
                 <SkipForward className="w-5 h-5" />
               </button>
