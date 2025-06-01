@@ -7,6 +7,7 @@ import { cn } from '../../lib/utils';
 const MusicPlayer = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isSeeking, setIsSeeking] = useState(false);
+  const [isAudioLoaded, setIsAudioLoaded] = useState(false);
   
   const {
     currentTrack,
@@ -35,25 +36,51 @@ const MusicPlayer = () => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
 
-    // Use a simple test audio for demo
-    audio.src = "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhCD2U4f3dbSkNdL7m/aJCAQpQlePtnWshFz6i4f7YdCgN";
+    console.log('Loading track:', currentTrack.name, 'URL:', currentTrack.audio_url);
+    
+    // Reset audio state
+    setIsAudioLoaded(false);
+    audio.src = currentTrack.audio_url || currentTrack.preview_url || '';
     audio.load();
 
-    if (isPlaying) {
-      audio.play().catch(console.error);
-    }
-  }, [currentTrack]);
+    const handleLoadedData = () => {
+      console.log('Audio loaded successfully');
+      setIsAudioLoaded(true);
+      setDuration(audio.duration);
+    };
+
+    const handleError = (e: Event) => {
+      console.error('Audio loading error:', e);
+      setIsAudioLoaded(false);
+    };
+
+    audio.addEventListener('loadeddata', handleLoadedData);
+    audio.addEventListener('error', handleError);
+
+    return () => {
+      audio.removeEventListener('loadeddata', handleLoadedData);
+      audio.removeEventListener('error', handleError);
+    };
+  }, [currentTrack, setDuration]);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !isAudioLoaded) return;
+
+    console.log('Playback state changed:', isPlaying ? 'playing' : 'paused');
 
     if (isPlaying) {
-      audio.play().catch(console.error);
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error('Playback failed:', error);
+          setIsPlaying(false);
+        });
+      }
     } else {
       audio.pause();
     }
-  }, [isPlaying]);
+  }, [isPlaying, isAudioLoaded, setIsPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -65,29 +92,24 @@ const MusicPlayer = () => {
       }
     };
 
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration || currentTrack?.duration || 0);
-    };
-
     const handleEnded = () => {
+      console.log('Track ended, repeat mode:', repeat);
       if (repeat === 'track') {
         audio.currentTime = 0;
-        audio.play();
+        audio.play().catch(console.error);
       } else {
         playNext();
       }
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('ended', handleEnded);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [isSeeking, repeat, playNext, setProgress, setDuration, currentTrack]);
+  }, [isSeeking, repeat, playNext, setProgress]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -97,12 +119,17 @@ const MusicPlayer = () => {
   }, [volume]);
 
   const togglePlayPause = () => {
+    console.log('Toggle play/pause clicked, current state:', isPlaying);
+    if (!currentTrack) {
+      console.log('No current track selected');
+      return;
+    }
     setIsPlaying(!isPlaying);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current;
-    if (audio) {
+    if (audio && isAudioLoaded) {
       const newTime = parseFloat(e.target.value);
       audio.currentTime = newTime;
       setProgress(newTime);
@@ -133,7 +160,11 @@ const MusicPlayer = () => {
 
   return (
     <>
-      <audio ref={audioRef} />
+      <audio 
+        ref={audioRef} 
+        crossOrigin="anonymous"
+        preload="metadata"
+      />
       
       {/* Desktop Player */}
       <div className="hidden lg:block fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900/95 to-black/95 backdrop-blur-md border-t border-gray-800/50">
@@ -183,7 +214,8 @@ const MusicPlayer = () => {
               
               <button
                 onClick={togglePlayPause}
-                className="bg-white text-black rounded-full p-3 hover:scale-105 transition-transform"
+                disabled={!isAudioLoaded}
+                className="bg-white text-black rounded-full p-3 hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
               </button>
@@ -223,7 +255,8 @@ const MusicPlayer = () => {
                 onChange={handleSeek}
                 onMouseDown={() => setIsSeeking(true)}
                 onMouseUp={() => setIsSeeking(false)}
-                className="flex-1 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                disabled={!isAudioLoaded}
+                className="flex-1 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider disabled:opacity-50"
               />
               <span className="text-xs text-gray-400 w-10">
                 {formatTime(duration || currentTrack?.duration || 0)}
@@ -259,7 +292,8 @@ const MusicPlayer = () => {
             onChange={handleSeek}
             onTouchStart={() => setIsSeeking(true)}
             onTouchEnd={() => setIsSeeking(false)}
-            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider mb-3"
+            disabled={!isAudioLoaded}
+            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider mb-3 disabled:opacity-50"
           />
           
           <div className="flex items-center justify-between">
@@ -298,7 +332,8 @@ const MusicPlayer = () => {
               
               <button
                 onClick={togglePlayPause}
-                className="bg-white text-black rounded-full p-2 hover:scale-105 transition-transform"
+                disabled={!isAudioLoaded}
+                className="bg-white text-black rounded-full p-2 hover:scale-105 transition-transform disabled:opacity-50"
               >
                 {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
               </button>

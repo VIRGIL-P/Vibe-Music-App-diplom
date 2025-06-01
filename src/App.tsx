@@ -11,6 +11,7 @@ import Home from "./pages/Home";
 import Search from "./pages/Search";
 import Library from "./pages/Library";
 import LikedSongs from "./pages/LikedSongs";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,19 +23,25 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <div className="min-h-screen flex w-full bg-black">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/library" element={<Library />} />
-              <Route path="/liked" element={<LikedSongs />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-          <MobileNav />
-          <MusicPlayer />
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/*" element={
+              <>
+                <Sidebar />
+                <main className="flex-1 overflow-y-auto">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/search" element={<Search />} />
+                    <Route path="/library" element={<Library />} />
+                    <Route path="/liked" element={<LikedSongs />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
+                <MobileNav />
+                <MusicPlayer />
+              </>
+            } />
+          </Routes>
         </div>
       </BrowserRouter>
     </TooltipProvider>

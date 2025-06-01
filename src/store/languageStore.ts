@@ -30,7 +30,12 @@ const translations = {
     madeByYou: 'Made by You',
     createFirstPlaylist: 'Create your first playlist',
     easyHelp: "It's easy, we'll help you",
-    searchPlaceholder: 'What do you want to listen to?'
+    searchPlaceholder: 'What do you want to listen to?',
+    login: 'Login',
+    signup: 'Sign Up',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    logout: 'Logout'
   },
   ru: {
     home: 'Главная',
@@ -54,7 +59,12 @@ const translations = {
     madeByYou: 'Ваши плейлисты',
     createFirstPlaylist: 'Создайте свой первый плейлист',
     easyHelp: 'Это просто, мы поможем',
-    searchPlaceholder: 'Что хотите послушать?'
+    searchPlaceholder: 'Что хотите послушать?',
+    login: 'Вход',
+    signup: 'Регистрация',
+    password: 'Пароль',
+    confirmPassword: 'Подтвердить пароль',
+    logout: 'Выход'
   }
 };
 
