@@ -1,9 +1,9 @@
-
 import React from 'react';
-import { Play, Pause, Heart, Plus } from 'lucide-react';
+import { Play, Pause, Plus } from 'lucide-react';
 import { Track } from '../../types/music';
 import { useMusicStore } from '../../store/musicStore';
 import { cn } from '../../lib/utils';
+import LikeButton from "@/components/LikeButton";
 
 interface TrackItemProps {
   track: Track;
@@ -25,23 +25,19 @@ const TrackItem: React.FC<TrackItemProps> = ({
   const {
     currentTrack,
     isPlaying,
-    likedTracks,
     queue,
     setCurrentTrack,
     setIsPlaying,
     setQueue,
-    toggleLikeTrack,
   } = useMusicStore();
 
   const isCurrentTrack = currentTrack?.id === track.id;
-  const isLiked = likedTracks.some(t => t.id === track.id);
 
   const handlePlay = () => {
     if (isCurrentTrack) {
       setIsPlaying(!isPlaying);
     } else {
       setCurrentTrack(track);
-      // If the track is not in the current queue, create a new queue with this track
       if (!queue.find(t => t.id === track.id)) {
         setQueue([track]);
       }
@@ -76,7 +72,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
               )}
             </button>
           </div>
-          
+
           <div className="min-w-0 flex-1">
             <h4 className={cn(
               "font-medium truncate",
@@ -91,16 +87,8 @@ const TrackItem: React.FC<TrackItemProps> = ({
         </div>
 
         <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={() => toggleLikeTrack(track)}
-            className={cn(
-              "p-1 rounded-full transition-colors",
-              isLiked ? "text-green-400" : "text-gray-400 hover:text-white"
-            )}
-          >
-            <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-          </button>
-          
+          <LikeButton track={track} />
+
           {onAddToPlaylist && (
             <button
               onClick={() => onAddToPlaylist(track)}
@@ -116,7 +104,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
 
   return (
     <div className="group grid grid-cols-12 gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors items-center">
-      {/* Index/Play Button */}
+      {/* Index / Play */}
       <div className="col-span-1 flex items-center justify-center">
         <span className={cn(
           "text-sm group-hover:hidden",
@@ -165,16 +153,8 @@ const TrackItem: React.FC<TrackItemProps> = ({
 
       {/* Actions */}
       <div className="col-span-2 flex items-center justify-end space-x-2">
-        <button
-          onClick={() => toggleLikeTrack(track)}
-          className={cn(
-            "p-1 rounded-full transition-colors opacity-0 group-hover:opacity-100",
-            isLiked ? "text-green-400 opacity-100" : "text-gray-400 hover:text-white"
-          )}
-        >
-          <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-        </button>
-        
+        <LikeButton track={track} />
+
         {onAddToPlaylist && (
           <button
             onClick={() => onAddToPlaylist(track)}

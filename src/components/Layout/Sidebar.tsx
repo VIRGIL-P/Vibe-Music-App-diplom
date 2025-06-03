@@ -1,13 +1,14 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, Heart, Plus, Music } from 'lucide-react';
 import { useMusicStore } from '../../store/musicStore';
+import { useModalStore } from '../../store/modalStore';
 import { cn } from '../../lib/utils';
 
 const Sidebar = () => {
   const location = useLocation();
   const { playlists } = useMusicStore();
+  const { openCreateModal } = useModalStore();
 
   const navigationItems = [
     { label: 'Home', path: '/', icon: Home },
@@ -57,12 +58,12 @@ const Sidebar = () => {
           <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
             Playlists
           </h3>
-          <Link
-            to="/create-playlist"
+          <button
+            onClick={openCreateModal}
             className="p-1 rounded hover:bg-white/5 transition-colors"
           >
             <Plus className="w-4 h-4 text-gray-400 hover:text-white" />
-          </Link>
+          </button>
         </div>
 
         <div className="space-y-1">

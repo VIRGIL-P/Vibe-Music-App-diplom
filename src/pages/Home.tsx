@@ -1,5 +1,5 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import CreatePlaylistModal from '../components/Modals/CreatePlaylistModal';
 import { Link } from 'react-router-dom';
 import { Play, User } from 'lucide-react';
 import { useMusicStore } from '../store/musicStore';
@@ -10,11 +10,11 @@ import { mockTracks } from '../data/mockMusic';
 import LanguageSwitcher from '../components/Layout/LanguageSwitcher';
 
 const Home = () => {
+  const [openModal, setOpenModal] = useState(false);
   const { setQueue, setCurrentTrack, setIsPlaying } = useMusicStore();
   const { t } = useLanguageStore();
   const { user, signOut } = useAuth();
 
-  // Set initial queue with mock tracks
   useEffect(() => {
     if (mockTracks.length > 0) {
       setQueue(mockTracks);
@@ -37,6 +37,7 @@ const Home = () => {
       <div className="flex items-center justify-between p-6 pb-0">
         <div className="flex items-center space-x-4">
           <h1 className="text-4xl font-bold text-white">{t('home')}</h1>
+          
         </div>
         <div className="flex items-center space-x-4">
           {user ? (
@@ -134,6 +135,8 @@ const Home = () => {
           </div>
         </section>
       </div>
+
+      <CreatePlaylistModal isOpen={openModal} onClose={() => setOpenModal(false)} />
     </div>
   );
 };

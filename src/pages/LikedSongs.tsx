@@ -1,14 +1,30 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Heart, Play, Shuffle } from 'lucide-react';
 import { useMusicStore } from '../store/musicStore';
 import { useLanguageStore } from '../store/languageStore';
+import { useUser } from '@clerk/clerk-react';
 import TrackItem from '../components/TrackList/TrackItem';
 import LanguageSwitcher from '../components/Layout/LanguageSwitcher';
 
 const LikedSongs = () => {
-  const { likedTracks, setQueue, setCurrentTrack, setIsPlaying, setShuffle } = useMusicStore();
+  const {
+    likedTracks,
+    setQueue,
+    setCurrentTrack,
+    setIsPlaying,
+    setShuffle,
+    allTracks,
+    loadLikedTracks,
+  } = useMusicStore();
   const { t } = useLanguageStore();
+  const { user } = useUser();
+
+  // Загружаем лайкнутые треки при наличии allTracks и авторизованного пользователя
+  useEffect(() => {
+    if (user && allTracks.length > 0) {
+      loadLikedTracks(user, allTracks);
+    }
+  }, [user, allTracks]);
 
   const playAllLiked = () => {
     if (likedTracks.length > 0) {
@@ -36,12 +52,12 @@ const LikedSongs = () => {
           <div></div>
           <LanguageSwitcher />
         </div>
-        
+
         <div className="flex items-end space-x-6">
           <div className="w-60 h-60 bg-gradient-to-br from-purple-400 to-blue-600 rounded-lg flex items-center justify-center shadow-2xl">
             <Heart className="w-24 h-24 text-white fill-current" />
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <p className="text-white text-sm font-medium mb-2">PLAYLIST</p>
             <h1 className="text-5xl font-bold text-white mb-4">{t('liked')}</h1>
@@ -63,7 +79,7 @@ const LikedSongs = () => {
               >
                 <Play className="w-6 h-6 text-black ml-0.5" />
               </button>
-              
+
               <button
                 onClick={shuffleLiked}
                 className="p-3 text-gray-400 hover:text-white transition-colors"
@@ -86,7 +102,7 @@ const LikedSongs = () => {
               <div className="col-span-2">DATE ADDED</div>
               <div className="col-span-1">⏱</div>
             </div>
-            
+
             {likedTracks.map((track, index) => (
               <TrackItem
                 key={track.id}
