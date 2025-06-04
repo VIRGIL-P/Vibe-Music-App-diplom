@@ -6,38 +6,44 @@ import { useMusicStore } from '../store/musicStore';
 import { useLanguageStore } from '../store/languageStore';
 import { useAuth } from '../hooks/useAuth';
 import TrackItem from '../components/TrackList/TrackItem';
-import { mockTracks } from '../data/mockMusic';
 import LanguageSwitcher from '../components/Layout/LanguageSwitcher';
+import LoadAllTracks from '@/components/LoadAllTracks';
 
 const Home = () => {
   const [openModal, setOpenModal] = useState(false);
   const { setQueue, setCurrentTrack, setIsPlaying } = useMusicStore();
   const { t } = useLanguageStore();
   const { user, signOut } = useAuth();
+  const tracks = useMusicStore((state) => state.allTracks);
+  console.log('🎧 Треки на главной:', tracks);
 
+
+  // Автоматически устанавливаем очередь, когда треки загружены
   useEffect(() => {
-    if (mockTracks.length > 0) {
-      setQueue(mockTracks);
+    if (tracks.length > 0) {
+      setQueue(tracks);
     }
-  }, [setQueue]);
+  }, [tracks, setQueue]);
 
+  // Воспроизведение всех рекомендованных треков
   const playFeatured = () => {
-    if (mockTracks.length > 0) {
-      setCurrentTrack(mockTracks[0]);
+    if (tracks.length > 0) {
+      setCurrentTrack(tracks[0]);
       setIsPlaying(true);
     }
   };
 
-  const featuredTracks = mockTracks.slice(0, 6);
-  const newReleases = mockTracks.slice(0, 4);
+  const featuredTracks = tracks;
+  const newReleases = tracks;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-black">
+      <LoadAllTracks /> {/* Загружаем треки из Supabase */}
+
       {/* Header */}
       <div className="flex items-center justify-between p-6 pb-0">
         <div className="flex items-center space-x-4">
           <h1 className="text-4xl font-bold text-white">{t('home')}</h1>
-          
         </div>
         <div className="flex items-center space-x-4">
           {user ? (
@@ -65,19 +71,20 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Контент */}
       <div className="p-6 pb-32 lg:pb-24">
-        {/* Welcome Message */}
+        {/* Welcome */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-white mb-2">
-            {user ? `Welcome back, ${user.email?.split('@')[0]}!` : 'Welcome to Vibe'}
+            {user ? `${t('welcomeBack')}, ${user.email?.split('@')[0]}!` : t('welcome')}
           </h2>
           <p className="text-gray-400">
-            {user ? 'Continue where you left off' : 'Sign in to access your music library'}
+            {user ? t('continueListening') : t('signInPrompt')}
           </p>
         </div>
 
-        {/* Featured Section */}
-        <section className="mb-8">
+        {/* Featured */}
+        <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-white">{t('featuredTracks')}</h2>
             <button
@@ -89,7 +96,7 @@ const Home = () => {
             </button>
           </div>
 
-          <div className="bg-white/5 rounded-lg p-4">
+          <div className="bg-white/5 rounded-lg p-4 divide-y divide-white/10">
             {featuredTracks.map((track, index) => (
               <TrackItem
                 key={track.id}
@@ -136,7 +143,12 @@ const Home = () => {
         </section>
       </div>
 
-      <CreatePlaylistModal isOpen={openModal} onClose={() => setOpenModal(false)} />
+      {/* Модалка создания плейлиста */}
+      <CreatePlaylistModal
+        isOpen={openModal}
+        onClose={() => setOpenModal(false)}
+        tracks={tracks}
+      />
     </div>
   );
 };

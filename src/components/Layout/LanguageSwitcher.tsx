@@ -1,30 +1,39 @@
-
 import React from 'react';
 import { useLanguageStore } from '../../store/languageStore';
+// import ThemeToggle from '../ThemeToggle'; //
 
 const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguageStore();
 
+  const handleSwitch = (lang: 'en' | 'ru') => {
+    setLanguage(lang);
+  };
+
   return (
-    <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg p-1">
+    <div className="flex items-center gap-2">
       <button
-        onClick={() => setLanguage('en')}
-        className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
-          language === 'en' ? 'bg-green-500 text-black' : 'text-gray-400 hover:text-white'
+        onClick={() => handleSwitch('en')}
+        className={`px-2 py-1 rounded transition-colors ${
+          language === 'en'
+            ? 'bg-green-500 text-black'
+            : 'bg-gray-800/50 text-white hover:bg-gray-700'
         }`}
       >
-        <span className="text-lg">🇺🇸</span>
-        <span className="text-sm font-medium">EN</span>
+        US EN
       </button>
       <button
-        onClick={() => setLanguage('ru')}
-        className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
-          language === 'ru' ? 'bg-green-500 text-black' : 'text-gray-400 hover:text-white'
+        onClick={() => handleSwitch('ru')}
+        className={`px-2 py-1 rounded transition-colors ${
+          language === 'ru'
+            ? 'bg-green-500 text-black'
+            : 'bg-gray-800/50 text-white hover:bg-gray-700'
         }`}
       >
-        <span className="text-lg">🇷🇺</span>
-        <span className="text-sm font-medium">RU</span>
+        RU RU
       </button>
+
+      {/* ✅ Кнопка переключения темы */}
+      {/* <ThemeToggle /> */}
     </div>
   );
 };

@@ -22,15 +22,18 @@ import NotFound from "./pages/NotFound";
 import CreatePlaylist from "./pages/CreatePlaylist";
 import PlaylistPage from "./pages/PlaylistPage";
 import CreatePlaylistPage from "./pages/CreatePlaylistPage";
-import LoadAllTracks from "./components/LoadAllTracks";
 
-import CreatePlaylistModal from "./components/Modals/CreatePlaylistModal";
+import AssistantPanel from "./components/ui/AssistantPanel";
+import UploadTrackModal from "./components/Modals/UploadTrackModal";
+import CreatePlaylistModalWrapper from "./components/Modals/CreatePlaylistModalWrapper";
 import { useModalStore } from "./store/modalStore";
+import { useUploadTrackStore } from "./store/uploadTrackStore"; // 🟡 добавили zustand-хранилище
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const { isCreateModalOpen, closeCreateModal } = useModalStore();
+  const { uploadOpen, setUploadOpen } = useUploadTrackStore(); // 🟡 читаем zustand-состояние
   const { user } = useUser();
   const setAllTracks = useMusicStore((s) => s.setAllTracks);
   const loadLikedTracks = useMusicStore((s) => s.loadLikedTracks);
@@ -67,7 +70,7 @@ const App = () => {
             <Route
               path="/*"
               element={
-                <div className="min-h-screen flex w-full bg-black">
+                <div className="min-h-screen flex w-full bg-background text-foreground relative transition-colors duration-300">
                   <Sidebar />
                   <main className="flex-1 overflow-y-auto">
                     <Routes>
@@ -75,20 +78,27 @@ const App = () => {
                       <Route path="/search" element={<Search />} />
                       <Route path="/library" element={<Library />} />
                       <Route path="/liked" element={<LikedSongs />} />
-                      <Route path="*" element={<NotFound />} />
                       <Route path="/create-playlist" element={<CreatePlaylist />} />
                       <Route path="/playlist/:id" element={<PlaylistPage />} />
+                      <Route path="*" element={<NotFound />} />
                       <Route path="/create-playlist" element={<CreatePlaylistPage />} />
                     </Routes>
                   </main>
                   <MusicPlayer />
                   <MobileNav />
+                  <AssistantPanel /> {/* 🔹 AI-панель */}
                 </div>
               }
             />
           </Routes>
         </BrowserRouter>
-        <CreatePlaylistModal isOpen={isCreateModalOpen} onClose={closeCreateModal} />
+
+        {/* Глобальные модалки */}
+        <CreatePlaylistModalWrapper />
+        <UploadTrackModal
+          isOpen={uploadOpen}
+          onClose={() => setUploadOpen(false)}
+        />
       </TooltipProvider>
     </QueryClientProvider>
   );

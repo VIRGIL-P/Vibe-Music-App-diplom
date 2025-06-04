@@ -1,0 +1,23 @@
+:root {
+  --sidebar-background: 0 0% 6%;         /* почти чёрный */
+  --sidebar-foreground: 0 0% 100%;       /* белый текст */
+  --sidebar-border: 0 0% 20%;            /* тёмная граница */
+
+  --background: 0 0% 6%;                 /* для всей страницы */
+  --foreground: 0 0% 100%;
+  --card: 0 0% 10%;
+  --card-foreground: 0 0% 100%;
+}
+
+
+/* 🌙 Тёмная тема */
+.dark {
+  --background: 222.2 47.4% 11.2%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 47.4% 11.2%;
+  --card-foreground: 210 40% 98%;
+  --sidebar-background: 0 0% 10%;
+  --sidebar-foreground: 0 0% 100%;
+  --primary: 262.1 83.3% 57.8%;
+  --primary-foreground: 210 40% 98%;
+}

@@ -1,4 +1,3 @@
-
 export interface Track {
   id: string;
   name: string;
@@ -15,6 +14,7 @@ export interface Track {
   album_datecreated: string;
   artist_dispname: string;
   license_ccurl: string;
+  user_id: string; // ✅ добавлено для поддержки Supabase user_id
 }
 
 export interface Artist {
