@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { uploadAudio, uploadImage } from '@/services/uploadToCloudinary';
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
+import { useLanguageStore } from '@/store/languageStore';
 
 interface Props {
   isOpen: boolean;
@@ -13,6 +14,8 @@ interface Props {
 
 const UploadTrackModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
+  const { t } = useLanguageStore();
+
   const [duration, setDuration] = useState<number | ''>('');
   const [form, setForm] = useState({
     name: '',
@@ -39,23 +42,23 @@ const UploadTrackModal: React.FC<Props> = ({ isOpen, onClose }) => {
     setErrorMsg(null);
 
     if (!user || !user.id) {
-      setErrorMsg('Пользователь не авторизован');
+      setErrorMsg(t('unauthorized'));
       return;
     }
 
     if (!form.name.trim() || !form.artist_name.trim()) {
-      setErrorMsg('Заполните название и имя исполнителя');
+      setErrorMsg(t('fillTrackInfo'));
       return;
     }
 
     if (!form.audio_file || !form.album_image) {
-      setErrorMsg('Прикрепите трек и обложку');
+      setErrorMsg(t('attachFiles'));
       return;
     }
 
     const trackDuration = duration || form.duration;
     if (!trackDuration || isNaN(+trackDuration)) {
-      setErrorMsg('Укажите длительность трека в секундах');
+      setErrorMsg(t('specifyDuration'));
       return;
     }
 
@@ -90,7 +93,7 @@ const UploadTrackModal: React.FC<Props> = ({ isOpen, onClose }) => {
       onClose();
     } catch (err: any) {
       console.error('Upload error:', err);
-      setErrorMsg(err.message || 'Неизвестная ошибка');
+      setErrorMsg(err.message || t('unknownError'));
     } finally {
       setLoading(false);
     }
@@ -123,14 +126,16 @@ const UploadTrackModal: React.FC<Props> = ({ isOpen, onClose }) => {
               leaveTo="opacity-0 scale-90"
             >
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-zinc-900 p-6 text-left align-middle shadow-xl transition-all text-white space-y-4">
-                <Dialog.Title className="text-lg font-semibold">Загрузить трек</Dialog.Title>
+                <Dialog.Title className="text-lg font-semibold">
+                  {t('uploadTrack')}
+                </Dialog.Title>
 
                 <input
                   type="text"
                   name="name"
                   value={form.name}
                   onChange={handleChange}
-                  placeholder="Название трека"
+                  placeholder={t('trackName')}
                   className="w-full bg-zinc-800 p-2 rounded"
                 />
                 <input
@@ -138,7 +143,7 @@ const UploadTrackModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   name="artist_name"
                   value={form.artist_name}
                   onChange={handleChange}
-                  placeholder="Исполнитель"
+                  placeholder={t('artistName')}
                   className="w-full bg-zinc-800 p-2 rounded"
                 />
                 <input
@@ -146,65 +151,62 @@ const UploadTrackModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   name="album"
                   value={form.album}
                   onChange={handleChange}
-                  placeholder="Альбом"
+                  placeholder={t('album')}
                   className="w-full bg-zinc-800 p-2 rounded"
                 />
 
-<div className="flex flex-col sm:flex-row gap-3 mt-4">
-  {/* Загрузить трек */}
-  <label className="bg-white/10 hover:bg-white/20 text-white text-sm py-2 px-4 rounded-full cursor-pointer transition w-full text-center sm:w-fit">
-    Загрузить трек
-    <input
-      type="file"
-      accept="audio/mp3"
-      onChange={(e) => {
-        const file = e.target.files?.[0];
-        if (file) {
-          handleChange({
-            target: { name: 'audio_file', value: file },
-          } as any);
-          const audio = new Audio(URL.createObjectURL(file));
-          audio.addEventListener('loadedmetadata', () => {
-            setDuration(Math.floor(audio.duration));
-          });
-        }
-      }}
-      className="hidden"
-    />
-  </label>
+                <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                  <label className="bg-white/10 hover:bg-white/20 text-white text-sm py-2 px-4 rounded-full cursor-pointer transition w-full text-center sm:w-fit">
+                    {t('uploadAudio')}
+                    <input
+                      type="file"
+                      accept="audio/mp3"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleChange({
+                            target: { name: 'audio_file', value: file },
+                          } as any);
+                          const audio = new Audio(URL.createObjectURL(file));
+                          audio.addEventListener('loadedmetadata', () => {
+                            setDuration(Math.floor(audio.duration));
+                          });
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
 
-  {/* Загрузить обложку */}
-  <label className="bg-white/10 hover:bg-white/20 text-white text-sm py-2 px-4 rounded-full cursor-pointer transition w-full text-center sm:w-fit">
-    Загрузить обложку
-    <input
-      type="file"
-      accept="image/*"
-      onChange={(e) => {
-        const file = e.target.files?.[0];
-        if (file) {
-          handleChange({
-            target: { name: 'album_image', value: file },
-          } as any);
-        }
-      }}
-      className="hidden"
-    />
-  </label>
-</div>
-
-
-
+                  <label className="bg-white/10 hover:bg-white/20 text-white text-sm py-2 px-4 rounded-full cursor-pointer transition w-full text-center sm:w-fit">
+                    {t('uploadCover')}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleChange({
+                            target: { name: 'album_image', value: file },
+                          } as any);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
 
                 {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}
 
                 <div className="flex justify-end gap-2">
-                  <button onClick={onClose} className="px-4 py-2 bg-zinc-700 rounded">Отмена</button>
+                  <button onClick={onClose} className="px-4 py-2 bg-zinc-700 rounded">
+                    {t('cancel')}
+                  </button>
                   <button
                     onClick={handleSubmit}
                     disabled={loading}
                     className="px-4 py-2 bg-purple-600 hover:bg-purple-700 transition rounded text-white"
                   >
-                    {loading ? 'Загрузка...' : 'Загрузить'}
+                    {loading ? t('uploading') : t('upload')}
                   </button>
                 </div>
               </Dialog.Panel>

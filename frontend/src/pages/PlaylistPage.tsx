@@ -50,20 +50,20 @@ const PlaylistPage = () => {
         const tracks: Track[] = rawTracks.map((t: any) => ({
           id: String(t.id),
           name: String(t.name),
-          artist_name: String(t.artist_name ?? ''),
-          artist_id: '',
-          album_name: String(t.album ?? ''),
-          album_id: '',
-          album_image: String(t.album_image ?? ''),
-          audio_url: String(t.audio_url ?? ''),
-          audiodownload: '',
+          artist_name: String(t.artist_name ?? ""),
+          artist_id: "",
+          album_name: String(t.album_name ?? ""),
+          album_id: "",
+          album_image: String(t.album_image ?? ""),
+          audio_url: String(t.audio_url ?? ""),
+          audiodownload: "",
           duration: Number(t.duration ?? 0),
           position: 0,
-          releasedate: '',
-          album_datecreated: '',
-          artist_dispname: '',
-          license_ccurl: '',
-          user_id: String(t.user_id ?? '')
+          releasedate: "",
+          album_datecreated: "",
+          artist_dispname: "",
+          license_ccurl: "",
+          user_id: String(t.user_id ?? ""),
         }));
 
         setPlaylist({ ...data, tracks });
@@ -104,6 +104,7 @@ const PlaylistPage = () => {
     const newName = prompt("Новое имя плейлиста:", playlist?.name);
     if (newName && newName.trim()) {
       updatePlaylist(playlist!.id, { name: newName.trim() });
+      setPlaylist({ ...playlist!, name: newName.trim() });
     }
   };
 

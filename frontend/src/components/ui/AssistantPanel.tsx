@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Bot, User } from 'lucide-react';
 import { askAI } from '../../services/askAI';
+import { useLanguageStore } from '@/store/languageStore';
 
 const AssistantPanel = () => {
+  const { t } = useLanguageStore();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
   const [input, setInput] = useState('');
@@ -29,7 +31,7 @@ const AssistantPanel = () => {
       const aiReply = await askAI(userMessage.text);
       setMessages((prev) => [...prev, { role: 'assistant' as const, text: aiReply }]);
     } catch {
-      setMessages((prev) => [...prev, { role: 'assistant' as const, text: '⚠ Ошибка при обращении к AI' }]);
+      setMessages((prev) => [...prev, { role: 'assistant' as const, text: t('aiError') }]);
     } finally {
       setLoading(false);
     }
@@ -42,9 +44,9 @@ const AssistantPanel = () => {
   return (
     <>
       {!isOpen && (
-        <div className="fixed bottom-20 right-6 z-[9998] flex items-center gap-2 group">
+        <div className="fixed bottom-32 right-6 z-[9998] flex items-center gap-2 group">
           <div className="opacity-0 group-hover:opacity-100 transition bg-zinc-800 text-white text-xs px-3 py-1 rounded shadow-lg mr-2">
-            Попробуй AI-ассистента!
+            {t('tryAssistant')}
           </div>
           <button
             onClick={togglePanel}
@@ -56,7 +58,6 @@ const AssistantPanel = () => {
         </div>
       )}
 
-      {/* Панель ассистента */}
       <div
         className={`fixed right-0 top-0 h-full w-[360px] bg-zinc-900 text-white shadow-xl z-[9999] flex flex-col border-l border-white/10 transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
@@ -64,7 +65,7 @@ const AssistantPanel = () => {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-lg font-semibold">AI Ассистент</h2>
+          <h2 className="text-lg font-semibold">{t('aiAssistant')}</h2>
           <button onClick={togglePanel}>
             <X className="text-white" />
           </button>
@@ -74,7 +75,7 @@ const AssistantPanel = () => {
         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
           {messages.length === 0 && (
             <p className="text-gray-400 text-sm text-center mt-10">
-              Задай вопрос, чтобы начать ✨
+              {t('askToStart')}
             </p>
           )}
           {messages.map((msg, idx) => (
@@ -102,7 +103,7 @@ const AssistantPanel = () => {
               </div>
             </div>
           ))}
-          {loading && <div className="text-sm text-gray-400">AI думает...</div>}
+          {loading && <div className="text-sm text-gray-400">{t('aiTyping')}</div>}
           <div ref={bottomRef}></div>
         </div>
 
@@ -111,7 +112,7 @@ const AssistantPanel = () => {
           <input
             ref={inputRef}
             className="flex-1 rounded-xl px-4 py-2 bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-purple-600 transition"
-            placeholder="Спроси что-нибудь..."
+            placeholder={t('askSomething')}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -121,7 +122,7 @@ const AssistantPanel = () => {
             disabled={loading}
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl transition disabled:opacity-50"
           >
-            ➤
+            ➔
           </button>
         </div>
       </div>

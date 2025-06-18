@@ -1,5 +1,6 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useMusicStore } from '@/store/musicStore';
+import { useLanguageStore } from '@/store/languageStore';
 import { Track } from '@/types/music';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -14,6 +15,7 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
   onClose,
   tracks,
 }) => {
+  const { t } = useLanguageStore();
   const [playlistName, setPlaylistName] = useState<string>('');
   const [selectedTrackIds, setSelectedTrackIds] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -22,7 +24,6 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
 
   const { createPlaylist } = useMusicStore();
 
-  // Получаем user.id из Supabase
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -46,17 +47,17 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
     setErrorMsg(null);
 
     if (!playlistName.trim()) {
-      setErrorMsg('Введите название плейлиста');
+      setErrorMsg(t('createFirstPlaylist')); // "Create your first playlist"
       return;
     }
 
     if (selectedTrackIds.length === 0) {
-      setErrorMsg('Выберите хотя бы один трек');
+      setErrorMsg(t('songsYouLike')); // "Select at least one track" — ты можешь добавить отдельный ключ, если нужно точнее
       return;
     }
 
     if (!userId) {
-      setErrorMsg('Пользователь не авторизован');
+      setErrorMsg('User not authorized');
       return;
     }
 
@@ -72,7 +73,7 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
         .single();
 
       if (playlistError || !playlistData) {
-        throw new Error(playlistError?.message || 'Ошибка создания плейлиста');
+        throw new Error('Failed to create playlist');
       }
 
       const trackEntries = selectedTrackIds.map((trackId) => ({
@@ -85,7 +86,7 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
         .insert(trackEntries);
 
       if (tracksError) {
-        throw new Error(tracksError.message || 'Ошибка добавления треков');
+        throw new Error('Failed to add tracks');
       }
 
       const selectedTracks = tracks.filter((track) =>
@@ -102,14 +103,13 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
       setSelectedTrackIds([]);
       onClose();
     } catch (err: any) {
-      console.error('Ошибка:', err);
-      setErrorMsg(err.message || 'Неизвестная ошибка');
+      console.error('Error:', err);
+      setErrorMsg(err.message || 'Unknown error');
     } finally {
       setLoading(false);
     }
   };
 
-  // Закрытие по Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -129,21 +129,16 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div className="bg-neutral-900 text-white p-6 rounded-xl shadow-lg w-full max-w-md border border-neutral-700">
         <h2 id="modal-title" className="text-2xl font-semibold mb-4">
-          Создать плейлист
+          {t('createPlaylist')}
         </h2>
         <form onSubmit={handleCreatePlaylist}>
           <input
             className="w-full p-2 bg-neutral-800 border border-neutral-700 rounded text-white placeholder-neutral-400 mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
             type="text"
-            placeholder="Название плейлиста"
+            placeholder={t('createPlaylist')}
             value={playlistName}
             onChange={(e) => setPlaylistName(e.target.value)}
           />
@@ -151,10 +146,7 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
           <div className="max-h-48 overflow-y-auto mb-4 space-y-2 pr-2">
             {Array.isArray(tracks) && tracks.length > 0 ? (
               tracks.map((track) => (
-                <label
-                  key={track.id}
-                  className="flex items-center gap-3 text-sm text-white cursor-pointer"
-                >
+                <label key={track.id} className="flex items-center gap-3 text-sm text-white cursor-pointer">
                   <span className="relative">
                     <input
                       type="checkbox"
@@ -171,7 +163,9 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
                 </label>
               ))
             ) : (
-              <p className="text-neutral-400 text-sm">Нет доступных треков</p>
+              <p className="text-neutral-400 text-sm">
+                {t('songsYouLike')}
+              </p>
             )}
           </div>
 
@@ -190,14 +184,15 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
               className="text-sm text-neutral-400 hover:text-white"
               disabled={loading}
             >
-              Отмена
+              {t('cancel') || 'Cancel'}
             </button>
             <button
               type="submit"
-              className="bg-green-600 hover:bg-green-700 text-sm text-white px-4 py-2 rounded disabled:opacity-50"
+              className="bg-green-400 hover:bg-green-500 text-black font-medium text-sm px-4 py-2 rounded-xl shadow-md transition disabled:opacity-50"
+
               disabled={loading}
             >
-              {loading ? 'Создание...' : 'Создать'}
+              {loading ? t('creating') || 'Creating...' : t('createPlaylist')}
             </button>
           </div>
         </form>

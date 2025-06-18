@@ -1,45 +1,79 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMusicStore } from "../store/musicStore";
+import type { Track } from "../types/music"; // убедись, что путь правильный
 
 const CreatePlaylist = () => {
   const [name, setName] = useState("");
-  const [creating, setCreating] = useState(false);
+  const creatingRef = useRef(false);
   const navigate = useNavigate();
-  const { likedTracks, createPlaylist, setPlaylists } = useMusicStore();
+
+  const {
+    likedTracks,
+    createPlaylist,
+    fetchPlaylists,
+  } = useMusicStore();
 
   const handleCreate = async () => {
-    if (!name.trim()) return alert("Введите название плейлиста");
-    if (likedTracks.length === 0) return alert("Нет понравившихся треков");
+    if (creatingRef.current) return;
 
-    setCreating(true);
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      alert("Введите название плейлиста");
+      return;
+    }
+
+    if (!likedTracks || !Array.isArray(likedTracks) || likedTracks.length === 0) {
+      alert("Нет понравившихся треков");
+      return;
+    }
+
+    creatingRef.current = true;
 
     try {
-      // 1. Создаём плейлист через функцию в zustand
+      const cleanTracks: Track[] = likedTracks.map((t) => ({
+        id: String(t.id ?? ""),
+        name: String(t.name ?? ""),
+        artist_name: String(t.artist_name ?? ""),
+        album_name: String(t.album_name ?? ""),
+        album_image: String(t.album_image ?? ""),
+        audio_url: String(t.audio_url ?? ""),
+        duration: Number(t.duration ?? 0),
+        album_id: "",
+        artist_id: "",
+        audiodownload: "",
+        position: 0,
+        releasedate: "",
+        album_datecreated: "",
+        artist_dispname: "",
+        license_ccurl: "",
+        user_id: String(t.user_id ?? "")
+      }));
+
       const newPlaylist = {
-        name: name.trim(),
+        name: trimmedName,
         description: "Плейлист из понравившихся треков",
-        tracks: likedTracks,
+        tracks: cleanTracks,
       };
 
-      await createPlaylist(newPlaylist); // автоматически добавит в Zustand
+      console.log("📤 Отправка в createPlaylist:", newPlaylist);
 
-      // 2. Перенаправление на страницу нового плейлиста
-      const { playlists } = useMusicStore.getState();
-      const created = playlists.find(p => p.name === name.trim());
+      const created = await createPlaylist(newPlaylist);
 
-      if (created) {
+      if (created?.id) {
+        console.log("✅ Плейлист успешно создан:", created);
+        await fetchPlaylists();
+        alert(`✅ Плейлист "${trimmedName}" создан из ${likedTracks.length} треков`);
         navigate(`/playlist/${created.id}`);
       } else {
-        navigate("/library");
+        alert("Ошибка: плейлист не был создан");
       }
-
-      alert(`✅ Плейлист "${name}" создан из ${likedTracks.length} треков`);
     } catch (err) {
-      console.error("❌ Ошибка создания плейлиста:", err);
-      alert("Ошибка при создании плейлиста");
+      console.error("❌ Ошибка при создании плейлиста:", err);
+      alert("Произошла ошибка при создании плейлиста");
     } finally {
-      setCreating(false);
+      creatingRef.current = false;
     }
   };
 
@@ -57,9 +91,9 @@ const CreatePlaylist = () => {
         <button
           onClick={handleCreate}
           className="w-full bg-green-500 text-black font-semibold py-3 rounded hover:bg-green-600 transition disabled:opacity-50"
-          disabled={creating}
+          disabled={creatingRef.current}
         >
-          {creating ? "Создание..." : "Создать из понравившихся"}
+          {creatingRef.current ? "Создание..." : "Создать из понравившихся"}
         </button>
       </div>
     </div>

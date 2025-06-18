@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useMusicStore } from "@/store/musicStore";
-import { Playlist } from "@/types/music";
+import { Playlist, Track } from "@/types/music";
 
 export const usePlaylists = () => {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const { user } = useAuth(); // 🔑 если у тебя плейлисты привязаны к user_id
+  const { user } = useAuth();
   const setStorePlaylists = useMusicStore((s) => s.setPlaylists);
 
   useEffect(() => {
@@ -34,11 +34,29 @@ export const usePlaylists = () => {
         return;
       }
 
-      if (data) {
-        setPlaylists(data);
-        setStorePlaylists(data); // ✅ обновляем Zustand
-      }
+      const parsed: Playlist[] = (data ?? []).map((item) => {
+        let parsedTracks: Track[] = [];
 
+        try {
+          parsedTracks = Array.isArray(item.tracks)
+            ? item.tracks
+            : typeof item.tracks === "string"
+            ? JSON.parse(item.tracks)
+            : [];
+        } catch (e) {
+          console.warn("⚠️ Невалидный JSON в tracks:", item.tracks);
+          parsedTracks = [];
+        }
+
+        return {
+          ...item,
+          tracks: parsedTracks,
+        };
+      })
+      .filter((p) => Array.isArray(p.tracks) && p.tracks.length > 0); // 👈 фильтрация
+
+      setPlaylists(parsed);
+      setStorePlaylists(parsed);
       setLoading(false);
     };
 

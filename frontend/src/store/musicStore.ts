@@ -31,7 +31,7 @@ fetchPlaylists: () => Promise<void>;
   setLoadingLikes: (value: boolean) => void;
   addToRecentlyPlayed: (track: Track) => void;
   clearRecentlyPlayed: () => void;
-  createPlaylist: (data: { name: string; description: string; tracks: Track[] }) => void;
+  createPlaylist: (data: { name: string; description: string; tracks: Track[] }) => Promise<Playlist | undefined>;
   addToPlaylist: (playlistId: string, track: Track) => void;
   removeFromPlaylist: (playlistId: string, trackId: string) => void;
   deletePlaylist: (playlistId: string) => void;
@@ -238,10 +238,10 @@ clearRecentlyPlayed: () => {
   localStorage.removeItem('recentlyPlayed');
 },
 
- createPlaylist: async ({ name, description, tracks }) => {
+createPlaylist: async ({ name, description, tracks }) => {
   const {
     data: { user },
-    error: userError
+    error: userError,
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
@@ -249,30 +249,54 @@ clearRecentlyPlayed: () => {
     return;
   }
 
-  const newPlaylist: Playlist = {
-    id: crypto.randomUUID(),
-    name,
-    description,
-    image: "",
-    tracks,
-    created_at: new Date().toISOString(),
-    user_id: user.id,
-  };
-
-  const { error } = await supabase.from("playlists").insert({
-    ...newPlaylist,
-    tracks: JSON.stringify(tracks),
-  });
-
-  if (error) {
-    console.error("❌ Ошибка при сохранении плейлиста:", error.message);
+  if (!tracks || !Array.isArray(tracks) || tracks.length === 0) {
+    console.warn("⛔ createPlaylist: пустые или некорректные треки");
     return;
   }
 
-  // ВСТАВКА сразу в zustand (без fetch)
-  set((state) => ({
-    playlists: [newPlaylist, ...state.playlists],
+  const cleanTracks = tracks.map((t) => ({
+    id: String(t.id ?? ''),
+    name: String(t.name ?? ''),
+    artist_name: String(t.artist_name ?? ''),
+    album_name: String(t.album_name ?? ''),
+    duration: Number(t.duration ?? 0),
+    album_image: String(t.album_image ?? ''),
+    audio_url: String(t.audio_url ?? ''),
   }));
+
+  const { data, error } = await supabase
+    .from("playlists")
+    .insert([
+      {
+        name,
+        description,
+        image: "",
+        tracks: cleanTracks,
+        user_id: user.id,
+      },
+    ])
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    console.error("❌ Ошибка при создании плейлиста:", error?.message);
+    return;
+  }
+
+  const created = {
+    ...data,
+    tracks: Array.isArray(data.tracks)
+      ? data.tracks
+      : typeof data.tracks === 'string'
+      ? JSON.parse(data.tracks)
+      : [],
+  };
+
+  set((state) => ({
+    playlists: [created, ...state.playlists],
+  }));
+
+  return created;
 },
 
 
@@ -296,7 +320,7 @@ clearRecentlyPlayed: () => {
     set({ playlists: updated });
   },
 
- deletePlaylist: async (playlistId) => {
+deletePlaylist: async (playlistId) => {
   const { playlists } = get();
 
   const { error } = await supabase
@@ -310,7 +334,11 @@ clearRecentlyPlayed: () => {
   }
 
   set({ playlists: playlists.filter(p => p.id !== playlistId) });
+
+  // 👇 ДОБАВЬ ЭТО
+  await get().fetchPlaylists();
 },
+
 
   updatePlaylist: (playlistId, updates) => {
     const { playlists } = get();
@@ -338,18 +366,30 @@ fetchPlaylists: async () => {
     return;
   }
 
-  const parsedPlaylists: Playlist[] = data.map((item) => ({
-    ...item,
-    tracks: Array.isArray(item.tracks)
-      ? item.tracks
-      : item.tracks
-      ? JSON.parse(item.tracks)
-      : [],
-  }));
+  const parsedPlaylists: Playlist[] = data
+    .map((item) => {
+      let parsedTracks: Track[] = [];
+
+      try {
+        parsedTracks = Array.isArray(item.tracks)
+          ? item.tracks
+          : typeof item.tracks === "string"
+          ? JSON.parse(item.tracks)
+          : [];
+      } catch (e) {
+        console.warn("⚠️ Невалидный JSON в tracks:", item.tracks);
+        parsedTracks = [];
+      }
+
+      return {
+        ...item,
+        tracks: parsedTracks,
+      };
+    })
+    .filter((p) => Array.isArray(p.tracks) && p.tracks.length > 0); // 👈 вот ЭТА СТРОКА важна
 
   set({ playlists: parsedPlaylists });
-}
-
+},
 
 }));
 

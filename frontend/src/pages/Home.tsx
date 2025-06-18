@@ -119,18 +119,18 @@ const Home = () => {
                 <TrackItem key={track.id} track={track} index={index} />
               ))
             )}
-
-            {!loading && visibleFeatured < featuredTracks.length && (
-              <div className="flex justify-center mt-4">
-                <button
-                  onClick={() => setVisibleFeatured((prev) => prev + 5)}
-                  className="text-sm text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full transition"
-                >
-                  {t('showMore')}
-                </button>
-              </div>
-            )}
           </div>
+
+          {!loading && visibleFeatured < featuredTracks.length && (
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={() => setVisibleFeatured((prev) => prev + 5)}
+                className="bg-zinc-700 hover:bg-zinc-600 text-white px-6 py-2 rounded-full text-sm font-medium transition hover:scale-105"
+              >
+                {t('showMore')}
+              </button>
+            </div>
+          )}
         </section>
 
         {/* New Releases */}
@@ -178,7 +178,7 @@ const Home = () => {
             <div className="flex justify-center mt-6">
               <button
                 onClick={() => setVisibleReleases((prev) => prev + 8)}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition hover:scale-105"
+                className="bg-zinc-700 hover:bg-zinc-600 text-white px-6 py-2 rounded-full text-sm font-medium transition hover:scale-105"
               >
                 {t('showMore')}
               </button>

@@ -5,11 +5,19 @@ const Library = () => {
   const { playlists, loading } = usePlaylists();
 
   if (loading) {
-    return <p className="text-muted-foreground p-4">Загрузка...</p>;
+    return (
+      <p className="text-muted-foreground p-4">
+        Загрузка...
+      </p>
+    );
   }
 
   if (playlists.length === 0) {
-    return <p className="text-muted-foreground p-4">Плейлисты не найдены</p>;
+    return (
+      <p className="text-muted-foreground p-4">
+        Плейлисты не найдены
+      </p>
+    );
   }
 
   return (
